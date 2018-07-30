@@ -1,0 +1,15 @@
+PODS:
+  - Blockstack (0.1.3):
+    - secp256k1.swift (~> 0.1.1)
+  - secp256k1.swift (0.1.4)
+
+DEPENDENCIES:
+  - Blockstack
+
+SPEC CHECKSUMS:
+  Blockstack: 280c0343e547af93d9b6d6aa09b42dd8a5c76d9b
+  secp256k1.swift: a7e7a214f6db6ce5db32cc6b2b45e5c4dd633634
+
+PODFILE CHECKSUM: 39f77bedab969753fe18fdc6b236a39489ab0720
+
+COCOAPODS: 1.4.0
