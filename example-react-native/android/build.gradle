@@ -25,5 +25,15 @@ allprojects {
         }
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
+
+ext {
+    buildToolsVersion = "27.0.3"
+    minSdkVersion = 19
+    compileSdkVersion = 27
+    targetSdkVersion = 27
+    supportLibVersion = "27.1.1"
+}
+

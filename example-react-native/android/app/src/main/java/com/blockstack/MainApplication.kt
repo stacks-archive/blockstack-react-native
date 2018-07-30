@@ -22,6 +22,10 @@ class MainApplication : Application(), ReactApplication {
                     BlockstackPackage()
             )
         }
+
+        override fun getJSMainModuleName(): String {
+            return "index"
+        }
     }
 
     override fun getReactNativeHost(): ReactNativeHost {

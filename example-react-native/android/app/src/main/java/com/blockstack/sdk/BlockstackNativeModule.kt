@@ -1,13 +1,11 @@
 package com.blockstack.sdk
 
-import android.widget.Toast
-import com.facebook.react.bridge.NativeModule;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
+import android.util.Log
+import com.facebook.react.bridge.*
+import org.blockstack.android.sdk.BlockstackSession
 
-class BlockstackNativeModule(reactContext:ReactApplicationContext): ReactContextBaseJavaModule(reactContext) {
+
+class BlockstackNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     override fun getName() = "BlockstackNativeModule"
 
@@ -16,8 +14,42 @@ class BlockstackNativeModule(reactContext:ReactApplicationContext): ReactContext
         return constants;
     }
 
+    private lateinit var session: BlockstackSession
+
     @ReactMethod
-    fun signIn() {
-        Toast.makeText(getReactApplicationContext(), "sign in", Toast.LENGTH_SHORT).show()
+    fun createSession(promise: Promise) {
+        val activity = getReactApplicationContext().currentActivity
+        if (activity is ConfigProvider) {
+            activity.runOnUiThread {
+                Log.d("BlockstackNativeModule", "create session")
+                session = BlockstackSession(activity, activity.getConfig()) {
+                    Log.d("BlockstackNativeModule", "created session")
+                    val map = Arguments.createMap()
+                    map.putBoolean("loaded", true)
+                    promise.resolve(map)
+                    currentSession = session
+                }
+            }
+        } else {
+            promise.reject(IllegalStateException("must be called from an Activity that implements ConfigProvider"))
+        }
+    }
+
+    @ReactMethod
+    fun signIn(promise: Promise) {
+        if (session.loaded) {
+            BlockstackNativeModule.currentSignInPromise = promise
+            getReactApplicationContext().currentActivity!!.runOnUiThread {
+                session.redirectUserToSignIn {
+                    // never called
+                }
+            }
+        }
+    }
+
+    companion object {
+        var currentSession: BlockstackSession? = null
+        var currentSignInPromise: Promise? = null
     }
 }
+
