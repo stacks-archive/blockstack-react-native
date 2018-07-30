@@ -8,7 +8,6 @@ import com.facebook.react.bridge.Arguments
 import org.blockstack.android.sdk.BlockstackSession
 
 class RedirectActivity : AppCompatActivity() {
-    private lateinit var _blockstackSession: BlockstackSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,15 +41,6 @@ class RedirectActivity : AppCompatActivity() {
                     })
                 }
             }
-        }
-    }
-
-    fun blockstackSession(): BlockstackSession {
-        val session = _blockstackSession
-        if (session != null) {
-            return session
-        } else {
-            throw IllegalStateException("No session.")
         }
     }
 }

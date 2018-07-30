@@ -1,6 +1,18 @@
 apply plugin: "com.android.application"
 apply plugin: 'kotlin-android'
 
+repositories {
+    mavenLocal()
+    jcenter()
+    maven {
+        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+        url "../../node_modules/react-native/android"
+    }
+    google()
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
 import com.android.build.OutputFile
 
 /**

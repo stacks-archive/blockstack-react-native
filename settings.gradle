@@ -1,1 +1,4 @@
-include ':example-react-native'
+include ':example-android'
+project(':example-android').projectDir = new File('./example-react-native/android/app')
+include ':example-js'
+project(':example-js').projectDir = new File('./example-react-native')

@@ -43,7 +43,10 @@ export default class App extends Component {
 
   async signIn() {
     console.log("signIn")
-    this.state.userData = await blockstack.signIn();
+    userDataMap = await blockstack.signIn();
+
+    console.log("result: " + JSON.stringify(userDataMap))
+    console.log("current state: " + JSON.stringify(this.state))
   }
 
   async signOut() {
