@@ -8,7 +8,6 @@ import com.blockstack.sdk.ConfigProvider
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
 import org.blockstack.android.sdk.BlockstackConfig
-import org.blockstack.android.sdk.BlockstackSession
 import org.blockstack.android.sdk.Scope
 import org.blockstack.android.sdk.toBlockstackConfig
 
@@ -53,13 +52,11 @@ class MainActivity : ReactActivity(), ConfigProvider {
                     BlockstackNativeModule.currentSession!!.handlePendingSignIn(authResponse, { userData ->
                         if (userData.hasValue) {
                             // The user is now signed in!
-                            runOnUiThread {
-                                Log.d("MainActivity", "user logged in")
-                                if (BlockstackNativeModule.currentSignInPromise != null) {
-                                    val map = Arguments.createMap()
-                                    map.putString("decentralizedID", userData.value!!.decentralizedID)
-                                    BlockstackNativeModule.currentSignInPromise!!.resolve(map)
-                                }
+                            Log.d("MainActivity", "user logged in")
+                            if (BlockstackNativeModule.currentSignInPromise != null) {
+                                val map = Arguments.createMap()
+                                map.putString("decentralizedID", userData.value!!.decentralizedID)
+                                BlockstackNativeModule.currentSignInPromise!!.resolve(map)
                             }
                         }
                     })

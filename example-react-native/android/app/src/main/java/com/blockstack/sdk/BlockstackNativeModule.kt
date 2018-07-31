@@ -1,8 +1,14 @@
 package com.blockstack.sdk
 
+import android.support.annotation.Nullable
 import android.util.Log
 import com.facebook.react.bridge.*
 import org.blockstack.android.sdk.BlockstackSession
+import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.bridge.ReactContext
+
+
 
 
 class BlockstackNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -44,6 +50,19 @@ class BlockstackNativeModule(reactContext: ReactApplicationContext) : ReactConte
                     // never called
                 }
             }
+        }
+    }
+
+    @ReactMethod
+    fun signUserOut(promise: Promise) {
+        if (session.loaded) {
+           getReactApplicationContext().currentActivity!!.runOnUiThread {
+               session.signUserOut {
+                   val map = Arguments.createMap()
+                   map.putBoolean("signedOut", true)
+                   promise.resolve(map)
+               }
+           }
         }
     }
 
