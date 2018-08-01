@@ -23,7 +23,7 @@ export default class App extends Component {
       }
 
     componentDidMount() {
-        this.createSession();
+        this.createSession()
     }
 
   render() {
@@ -56,7 +56,11 @@ export default class App extends Component {
   }
 
   async createSession() {
-    result = await blockstack.createSession()
+    config = {
+      appDomain:"https://flamboyant-darwin-d11c17.netlify.com",
+      scopes:["store_write"]
+    }
+    result = await blockstack.createSession(config)
 
     console.log("created " + result["loaded"])
     this.setState({loaded:result["loaded"]})

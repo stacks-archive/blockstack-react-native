@@ -4,14 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import com.blockstack.sdk.BlockstackNativeModule
-import com.blockstack.sdk.ConfigProvider
 import com.facebook.react.ReactActivity
 import com.facebook.react.bridge.Arguments
-import org.blockstack.android.sdk.BlockstackConfig
-import org.blockstack.android.sdk.Scope
-import org.blockstack.android.sdk.toBlockstackConfig
 
-class MainActivity : ReactActivity(), ConfigProvider {
+class MainActivity : ReactActivity() {
 
     /**
      * Returns the name of the main component registered from JavaScript.
@@ -20,9 +16,6 @@ class MainActivity : ReactActivity(), ConfigProvider {
     override fun getMainComponentName(): String? {
         return "Blockstack"
     }
-
-    override fun getConfig(): BlockstackConfig = "https://flamboyant-darwin-d11c17.netlify.com"
-            .toBlockstackConfig(arrayOf(Scope.StoreWrite))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

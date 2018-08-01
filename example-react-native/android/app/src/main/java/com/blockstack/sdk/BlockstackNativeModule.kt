@@ -3,9 +3,8 @@ package com.blockstack.sdk
 import android.util.Base64
 import android.util.Log
 import com.facebook.react.bridge.*
-import org.blockstack.android.sdk.BlockstackSession
-import org.blockstack.android.sdk.GetFileOptions
-import org.blockstack.android.sdk.PutFileOptions
+import org.blockstack.android.sdk.*
+import java.net.URI
 
 
 class BlockstackNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -20,12 +19,34 @@ class BlockstackNativeModule(reactContext: ReactApplicationContext) : ReactConte
     private lateinit var session: BlockstackSession
 
     @ReactMethod
-    fun createSession(promise: Promise) {
+    fun createSession(configArg: ReadableMap, promise: Promise) {
         val activity = getReactApplicationContext().currentActivity
-        if (activity is ConfigProvider) {
+        if (activity != null) {
+            val scopes = configArg.getArray("scopes")
+                    .toArrayList().map { Scope.valueOf((it as String)
+                            .split("_").joinToString("") { it.capitalize() }) }
+                    .toTypedArray()
+
+            if (!configArg.hasKey("appDomain")) {
+                throw IllegalArgumentException("'appDomain' needed in config object")
+            }
+            val appDomain = configArg.getString("appDomain")
+            val manifestUrl = if (configArg.hasKey("manifestUrl")) {
+                configArg.getString("manifestUrl")
+            } else {
+                "$appDomain/manifest.json"
+            }
+
+            val redirectUrl = if(configArg.hasKey("redirectUrl")) {
+                configArg.getString("redirectUrl")
+            } else {
+                "$appDomain/redirect"
+            }
+            val config = BlockstackConfig(URI(appDomain), URI(redirectUrl), URI(manifestUrl), scopes)
+
             activity.runOnUiThread {
                 Log.d("BlockstackNativeModule", "create session")
-                session = BlockstackSession(activity, activity.getConfig()) {
+                session = BlockstackSession(activity!!, config) {
                     Log.d("BlockstackNativeModule", "created session")
                     val map = Arguments.createMap()
                     map.putBoolean("loaded", true)
