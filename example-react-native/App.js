@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 blockstack = NativeModules.BlockstackNativeModule;
+const textFileName = "message.txt"
 
 export default class App extends Component {
 
@@ -15,52 +16,85 @@ export default class App extends Component {
         super(props);
         this.state = {
             loaded: false, 
-            userData: null
+            userData: null,
+            fileContents: null,
+            fileUrl: null
         };
       }
 
     componentDidMount() {
-        console.log("did mount")
         this.createSession();
     }
 
   render() {
-    return (
+    if (this.state.userData) {
+      signInText = "Signed in as " + this.state.userData.decentralizedID
+    } else {
+      signInText = "Not signed in"
+    }
+
+    return (      
       <View style={styles.container}>
         <Text tyle={styles.welcome}>Blockstack React Native Example</Text>  
+        
         <Button title="Sign In with Blockstack" onPress={() => this.signIn()}
-        disabled = {!this.state.loaded || this.state.userData != null}
-        />
+        disabled = {!this.state.loaded || this.state.userData != null}/>
+        <Text>{signInText}</Text>
+
         <Button title="Sign out" onPress={() => this.signOut()}
         disabled = {!this.state.loaded || this.state.userData == null}/>
+        
+        <Button title="Put file" onPress={() => this.putFile()}
+        disabled = {!this.state.loaded || this.state.userData == null}/>
+        <Text>{this.state.fileUrl}</Text>
+        
+        <Button title="Get file" onPress={() => this.getFile()}
+        disabled = {!this.state.loaded || this.state.userData == null}/>
+        <Text>{this.state.fileContents}</Text>
       </View>
     );
   }
 
   async createSession() {
     result = await blockstack.createSession()
+
     console.log("created " + result["loaded"])
     this.setState({loaded:result["loaded"]})
-    console.log("current state: " + JSON.stringify(this.state))
   }
 
   async signIn() {
     console.log("signIn")
     console.log("current state: " + JSON.stringify(this.state))
-    userDataMap = await blockstack.signIn();
+    result = await blockstack.signIn();
     
-    console.log("result: " + JSON.stringify(userDataMap))
-    this.setState({userData:{did:userDataMap["decentralizedID"]}})
-    console.log("current state: " + JSON.stringify(this.state))
+    console.log("result: " + JSON.stringify(result))
+    this.setState({userData:{decentralizedID:result["decentralizedID"]}})
   }
 
   async signOut() {
     result = await blockstack.signUserOut()
+
     console.log(JSON.stringify(result))
     if (result["signedOut"]) {
       this.setState({userData: null})
     }
-    console.log("current state: " + JSON.stringify(this.state))
+  }
+
+  async putFile() {
+    this.setState({fileUrl: "uploading..."})
+    content = "Hello React Native"
+    options = {encrypt: false}
+    result = await blockstack.putFile(textFileName, content, options)
+    console.log(JSON.stringify(result))
+    this.setState({fileUrl: result["fileUrl"]})
+  }
+
+  async getFile() {
+    this.setState({fileContents: "downloading..."})
+    options = {decrypt:false}
+    result = await blockstack.getFile(textFileName, options)
+    console.log(JSON.stringify(result))
+    this.setState({fileContents: result["fileContents"]})
   }
 }
 
