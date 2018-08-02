@@ -46,7 +46,7 @@ class BlockstackNativeModule(reactContext: ReactApplicationContext) : ReactConte
 
             activity.runOnUiThread {
                 Log.d("BlockstackNativeModule", "create session")
-                session = BlockstackSession(activity!!, config) {
+                session = BlockstackSession(activity, config) {
                     Log.d("BlockstackNativeModule", "created session")
                     val map = Arguments.createMap()
                     map.putBoolean("loaded", true)
@@ -127,6 +127,7 @@ class BlockstackNativeModule(reactContext: ReactApplicationContext) : ReactConte
     private fun canUseBlockstack() = session.loaded && reactApplicationContext.currentActivity != null
 
     companion object {
+        // TODO only store transitKey and the likes in this static variable
         var currentSession: BlockstackSession? = null
         var currentSignInPromise: Promise? = null
     }
