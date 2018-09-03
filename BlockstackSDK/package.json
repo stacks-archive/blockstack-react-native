@@ -1,0 +1,19 @@
+{
+  "name": "react-native-blockstack-sdk",
+  "version": "1.0.0",
+  "description": "Blockstack SDK for use with react native apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react-native",
+    "blockstack"
+  ],
+  "author": "",
+  "license": "",
+  "peerDependencies": {
+    "react-native": "^0.41.2",
+    "react-native-windows": "0.41.0-rc.1"
+  }
+}

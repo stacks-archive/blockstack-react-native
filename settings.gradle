@@ -2,3 +2,11 @@ include ':example-android'
 project(':example-android').projectDir = new File('./example-react-native/android/app')
 include ':example-js'
 project(':example-js').projectDir = new File('./example-react-native')
+include ':blockstack-sdk'
+project(':blockstack-sdk').projectDir = new File('./BlockstackSDK')
+include ':.._.._BlockstackSDK'
+project(':.._.._BlockstackSDK').projectDir = new File(rootProject.projectDir, './BlockstackSDK/android')
+include ':example-sdk-module-js'
+project(':example-sdk-module-js').projectDir = new File('./example-sdk-module')
+include ':example-sdk-module-android'
+project(':example-sdk-module-android').projectDir = new File('./example-sdk-module/android/app')
