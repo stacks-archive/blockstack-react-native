@@ -1,6 +1,6 @@
 {
-  "name": "react-native-blockstack-sdk",
-  "version": "1.0.0",
+  "name": "react-native-blockstack",
+  "version": "0.3.0",
   "description": "Blockstack SDK for use with react native apps",
   "main": "index.js",
   "scripts": {
