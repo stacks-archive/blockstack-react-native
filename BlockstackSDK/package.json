@@ -1,7 +1,7 @@
 {
   "name": "react-native-blockstack",
-  "version": "0.3.0",
-  "description": "Blockstack SDK for use with react native apps",
+  "version": "0.3.1",
+  "description": "Blockstack SDK for use with React Native apps",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
