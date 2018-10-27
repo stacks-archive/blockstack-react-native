@@ -15,7 +15,7 @@ import {
   View
 } from 'react-native';
 
-import RNBlockstackSdk from 'react-native-blockstack-sdk';
+import RNBlockstackSdk from 'react-native-blockstack';
 const textFileName = "message.txt"
 
 type Props = {};
@@ -53,6 +53,7 @@ export default class App extends Component<Props> {
 
           <Button title="Sign out" onPress={() => this.signOut()}
           disabled = {!this.state.loaded || this.state.userData == null}/>
+          <Text>------------</Text>
 
           <Button title="Put file" onPress={() => this.putFile()}
           disabled = {!this.state.loaded || this.state.userData == null}/>
@@ -74,8 +75,16 @@ async createSession() {
     result = await RNBlockstackSdk.createSession(config)
 
     console.log("created " + result["loaded"])
-    this.setState({loaded:result["loaded"]})
-  }
+    var signedIn = await RNBlockstackSdk.isUserSignedIn()
+     if (signedIn) {
+        console.log("user is signed in")
+        var userData = await RNBlockstackSdk.loadUserData()
+        console.log("userData " + JSON.stringify(userData))
+        this.setState({userData:{decentralizedID:userData["decentralizedID"]}, loaded:result["loaded"]})
+    } else {
+        this.setState({loaded:result["loaded"]})
+    }
+}
 
   async signIn() {
     console.log("signIn")

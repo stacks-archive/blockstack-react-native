@@ -1,5 +1,8 @@
 rootProject.name = 'example-sdk-module'
 include ':.._.._BlockstackSDK'
-project(':.._.._BlockstackSDK').projectDir = new File(rootProject.projectDir, '../../BlockstackSDK/android')
+project(':.._.._BlockstackSDK').projectDir = new File('../../BlockstackSDK/android')
+
+include ':BlockstackAndroidSDK'
+project(':BlockstackAndroidSDK').projectDir = new File('../../../blockstack-android/blockstack-sdk')
 
 include ':app'

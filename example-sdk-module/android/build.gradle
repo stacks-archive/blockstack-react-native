@@ -1,25 +1,36 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
+    ext.kotlin_version = '1.2.71'
+    ext.anko_version = '0.10.4'
+
     repositories {
         jcenter()
         maven {
             url 'https://maven.google.com/'
             name 'Google'
         }
+        google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
+        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
+plugins {
+    id "org.jetbrains.dokka-android" version "0.9.17"
+}
+
 allprojects {
     repositories {
         mavenLocal()
         jcenter()
+        google()
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url "$rootDir/../node_modules/react-native/android"
@@ -33,9 +44,9 @@ allprojects {
 }
 
 ext {
-    buildToolsVersion = "26.0.3"
+    buildToolsVersion = "28.0.3"
     minSdkVersion = 21
-    compileSdkVersion = 26
-    targetSdkVersion = 26
-    supportLibVersion = "27.1.1"
+    compileSdkVersion = 28
+    targetSdkVersion = 28
+    supportLibVersion = "28.0.0"
 }
