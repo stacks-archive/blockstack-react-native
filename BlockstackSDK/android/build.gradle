@@ -53,6 +53,7 @@ repositories {
 dependencies {
     implementation 'com.facebook.react:react-native:0.56.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.anko:anko-coroutines:$anko_version"
     api project(":BlockstackAndroidSDK")
 }
   

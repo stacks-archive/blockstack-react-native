@@ -1,8 +1,13 @@
 package org.blockstack.reactnative
 
+import android.content.Context
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Base64
 import android.util.Log
 import com.facebook.react.bridge.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
 import org.blockstack.android.sdk.*
 import java.net.URI
 
@@ -16,6 +21,8 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
     }
 
     private lateinit var session: BlockstackSession
+    private lateinit var handler: Handler
+    private val handlerThread: HandlerThread = HandlerThread("blockstack-rn")
 
     @ReactMethod
     fun createSession(configArg: ReadableMap, promise: Promise) {
@@ -45,37 +52,66 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
             }
             val config = BlockstackConfig(URI(appDomain), redirectPath, manifestPath, scopes)
 
+            handlerThread.start()
+            handler = Handler(handlerThread.looper)
+            runOnV8Thread {
+                Log.d("BlockstackNativeModule", "create session" + Thread.currentThread().name)
 
-            Log.d("BlockstackNativeModule", "create session" + Thread.currentThread().name)
-            session = BlockstackSession(activity, config)
-            Log.d("BlockstackNativeModule", "created session")
-            val map = Arguments.createMap()
-            map.putBoolean("loaded", true)
-            promise.resolve(map)
-            currentSession = session
+                session = BlockstackSession(activity, config, executor = object : Executor {
+                    override fun onMainThread(function: (Context) -> Unit) {
+                        activity.runOnUiThread {
+                            function(activity)
+                        }
+                    }
 
+                    override fun onV8Thread(function: () -> Unit) {
+                        runOnV8Thread(function)
+                    }
+
+                    override fun onNetworkThread(function: suspend () -> Unit) {
+                        async(CommonPool) {
+                            function()
+                        }
+                    }
+
+                })
+
+                Log.d("BlockstackNativeModule", "created session")
+                val map = Arguments.createMap()
+                map.putBoolean("loaded", true)
+                promise.resolve(map)
+                currentSession = session
+            }
         } else {
             promise.reject(IllegalStateException("must be called from an Activity that implements ConfigProvider"))
         }
     }
 
+    private fun runOnV8Thread(function: () -> Unit) {
+        handler.post(function)
+    }
+
     @ReactMethod
     fun isUserSignedIn(promise: Promise) {
         if (session.loaded) {
-            val map = Arguments.createMap()
-            map.putBoolean("signedIn", session.isUserSignedIn())
-            promise.resolve(map)
+            runOnV8Thread {
+                val map = Arguments.createMap()
+                map.putBoolean("signedIn", session.isUserSignedIn())
+                promise.resolve(map)
+            }
         }
     }
 
     @ReactMethod
     fun signIn(promise: Promise) {
         if (session.loaded) {
-            RNBlockstackSdkModule.currentSignInPromise = promise
-            session.redirectUserToSignIn {
-                // never called
+            runOnV8Thread {
+
+                RNBlockstackSdkModule.currentSignInPromise = promise
+                session.redirectUserToSignIn {
+                    // never called
+                }
             }
-            session.releaseThreadLock()
         } else {
             promise.reject("NOT_LOADED", "Session not loaded")
         }
@@ -84,10 +120,12 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun signUserOut(promise: Promise) {
         if (session.loaded) {
-            session.signUserOut()
-            val map = Arguments.createMap()
-            map.putBoolean("signedOut", true)
-            promise.resolve(map)
+            runOnV8Thread {
+                session.signUserOut()
+                val map = Arguments.createMap()
+                map.putBoolean("signedOut", true)
+                promise.resolve(map)
+            }
         } else {
             promise.reject("NOT_LOADED", "Session not loaded")
         }
@@ -95,11 +133,13 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun loadUserData(promise: Promise) {
-        if(session.loaded) {
-            val decentralizedID = session.loadUserData()?.decentralizedID
-            val map = Arguments.createMap()
-            map.putString("decentralizedID", decentralizedID)
-            promise.resolve(map)
+        if (session.loaded) {
+            runOnV8Thread {
+                val decentralizedID = session.loadUserData()?.decentralizedID
+                val map = Arguments.createMap()
+                map.putString("decentralizedID", decentralizedID)
+                promise.resolve(map)
+            }
         } else {
             promise.reject("NOT_LOADED", "Session not loaded")
         }
@@ -107,22 +147,18 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun putFile(path: String, content: String, optionsArg: ReadableMap, promise: Promise) {
-        session.aquireThreadLock()
         if (canUseBlockstack()) {
-            val options = PutFileOptions(optionsArg.getBoolean("encrypt"))
-            session.putFile(path, content, options) {
-                Log.d("RNBlockstackSdkModuel", "putFile result")
-                if (it.hasValue) {
-                    val map = Arguments.createMap()
-                    map.putString("fileUrl", it.value)
-                    promise.resolve(map)
-                } else {
-                    promise.reject("0", it.error)
-                }
-                try {
-                    session.releaseThreadLock()
-                } catch (e:Exception) {
-                    Log.d("RNBlockstackSdkModuel", e.toString(), e)
+            runOnV8Thread {
+                val options = PutFileOptions(optionsArg.getBoolean("encrypt"))
+                session.putFile(path, content, options) {
+                    Log.d("RNBlockstackSdkModuel", "putFile result")
+                    if (it.hasValue) {
+                        val map = Arguments.createMap()
+                        map.putString("fileUrl", it.value)
+                        promise.resolve(map)
+                    } else {
+                        promise.reject("0", it.error)
+                    }
                 }
             }
         }
@@ -130,23 +166,23 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun getFile(path: String, optionsArg: ReadableMap, promise: Promise) {
-        session.aquireThreadLock()
         if (canUseBlockstack()) {
-            val options = GetFileOptions(optionsArg.getBoolean("decrypt"))
-            session.getFile(path, options) {
-                if (it.hasValue) {
-                    val map = Arguments.createMap()
-                    if (it.value is String) {
-                        map.putString("fileContents", it.value as String)
+            runOnV8Thread {
+                val options = GetFileOptions(optionsArg.getBoolean("decrypt"))
+                session.getFile(path, options) {
+                    if (it.hasValue) {
+                        val map = Arguments.createMap()
+                        if (it.value is String) {
+                            map.putString("fileContents", it.value as String)
+                        } else {
+                            map.putString("fileContentsEncoded", Base64.encodeToString(it.value as ByteArray, Base64.NO_WRAP))
+                        }
+                        promise.resolve(map)
                     } else {
-                        map.putString("fileContentsEncoded", Base64.encodeToString(it.value as ByteArray, Base64.NO_WRAP))
+                        promise.reject("0", it.error)
                     }
-                    promise.resolve(map)
-                } else {
-                    promise.reject("0", it.error)
                 }
             }
-
         }
     }
 
