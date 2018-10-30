@@ -33,6 +33,7 @@ export default class App extends Component<Props> {
 
       componentDidMount() {
           console.log("didMount")
+          console.log("props" + JSON.stringify(this.props))
           this.createSession()
       }
 
@@ -72,17 +73,29 @@ async createSession() {
       scopes:["store_write"]
     }
     console.log("blockstack:" + RNBlockstackSdk)
-    result = await RNBlockstackSdk.createSession(config)
-
-    console.log("created " + result["loaded"])
-    var signedIn = await RNBlockstackSdk.isUserSignedIn()
-     if (signedIn) {
-        console.log("user is signed in")
-        var userData = await RNBlockstackSdk.loadUserData()
-        console.log("userData " + JSON.stringify(userData))
-        this.setState({userData:{decentralizedID:userData["decentralizedID"]}, loaded:result["loaded"]})
+    hasSession = await RNBlockstackSdk.hasSession()
+    if (!hasSession["hasSession"]) {
+      result = await RNBlockstackSdk.createSession(config)
+      console.log("created " + result["loaded"])
     } else {
-        this.setState({loaded:result["loaded"]})
+      console.log("reusing session")
+    }
+
+    if (this.props.authResponse) {
+      result = await RNBlockstackSdk.handleAuthResponse(this.props.authResponse)
+      console.log("userData " + JSON.stringify(result))
+      this.setState({userData:{decentralizedID:result["decentralizedID"]}, loaded:result["loaded"]})
+    } else {
+
+        var signedIn = await RNBlockstackSdk.isUserSignedIn()
+         if (signedIn["signedIn"]) {
+            console.log("user is signed in")
+            var userData = await RNBlockstackSdk.loadUserData()
+            console.log("userData " + JSON.stringify(userData))
+            this.setState({userData:{decentralizedID:userData["decentralizedID"]}, loaded:result["loaded"]})
+        } else {
+            this.setState({loaded:result["loaded"]})
+        }
     }
 }
 

@@ -25,6 +25,17 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
     private val handlerThread: HandlerThread = HandlerThread("blockstack-rn")
 
     @ReactMethod
+    fun hasSession(promise: Promise) {
+        val map = Arguments.createMap()
+        try {
+            map.putBoolean("hasSession", session != null)
+        } catch (e:Exception) {
+            map.putBoolean("hasSession", false)
+        }
+        promise.resolve(map)
+    }
+
+    @ReactMethod
     fun createSession(configArg: ReadableMap, promise: Promise) {
         val activity = getReactApplicationContext().currentActivity
         if (activity != null) {
@@ -54,6 +65,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
 
             handlerThread.start()
             handler = Handler(handlerThread.looper)
+
             runOnV8Thread {
                 Log.d("BlockstackNativeModule", "create session" + Thread.currentThread().name)
 
@@ -81,8 +93,10 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
                 map.putBoolean("loaded", true)
                 promise.resolve(map)
                 currentSession = session
+                currentHandler = handler
             }
         } else {
+            Log.d(name, "reject create session")
             promise.reject(IllegalStateException("must be called from an Activity that implements ConfigProvider"))
         }
     }
@@ -97,8 +111,11 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
             runOnV8Thread {
                 val map = Arguments.createMap()
                 map.putBoolean("signedIn", session.isUserSignedIn())
+                Log.d("RNBlockstack", "signed in:" + map.getBoolean("signedIn").toString())
                 promise.resolve(map)
             }
+        } else {
+            promise.reject("NOT_LOADED", "Session not loaded")
         }
     }
 
@@ -114,6 +131,25 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
             }
         } else {
             promise.reject("NOT_LOADED", "Session not loaded")
+        }
+    }
+
+    @ReactMethod
+    fun handleAuthResponse(authResponse: String, promise: Promise) {
+        if (session.loaded) {
+            runOnV8Thread {
+                session.handlePendingSignIn(authResponse, {result ->
+                    if (result.hasValue) {
+                        // The user is now signed in!
+                            val map = Arguments.createMap()
+                            map.putString("decentralizedID", result.value!!.decentralizedID)
+                            map.putBoolean("loaded", true)
+                            promise.resolve(map)
+                    } else {
+                        promise.reject("ERROR", result.error)
+                    }
+                })
+            }
         }
     }
 
@@ -135,10 +171,14 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
     fun loadUserData(promise: Promise) {
         if (session.loaded) {
             runOnV8Thread {
-                val decentralizedID = session.loadUserData()?.decentralizedID
-                val map = Arguments.createMap()
-                map.putString("decentralizedID", decentralizedID)
-                promise.resolve(map)
+                if (session.loadUserData() != null) {
+                    val decentralizedID = session.loadUserData()?.decentralizedID
+                    val map = Arguments.createMap()
+                    map.putString("decentralizedID", decentralizedID)
+                    promise.resolve(map)
+                } else {
+                    promise.reject("NOT_SIGNED_IN", "Not signed in")
+                }
             }
         } else {
             promise.reject("NOT_LOADED", "Session not loaded")
@@ -194,5 +234,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
         var currentSession: BlockstackSession? = null
         @JvmStatic
         var currentSignInPromise: Promise? = null
+        @JvmStatic
+        var currentHandler: Handler? = null
     }
 }
