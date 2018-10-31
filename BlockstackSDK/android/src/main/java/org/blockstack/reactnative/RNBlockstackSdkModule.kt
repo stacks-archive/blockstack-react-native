@@ -135,7 +135,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun handleAuthResponse(authResponse: String, promise: Promise) {
+    fun handlePendingSignIn(authResponse: String, promise: Promise) {
         if (session.loaded) {
             runOnV8Thread {
                 session.handlePendingSignIn(authResponse, {result ->

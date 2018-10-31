@@ -12,8 +12,10 @@ import {
   StyleSheet,
   Button,
   Text,
-  View
+  View,
+  Linking
 } from 'react-native';
+import { DeviceEventEmitter } from 'react-native';
 
 import RNBlockstackSdk from 'react-native-blockstack';
 const textFileName = "message.txt"
@@ -35,6 +37,31 @@ export default class App extends Component<Props> {
           console.log("didMount")
           console.log("props" + JSON.stringify(this.props))
           this.createSession()
+
+          var app = this
+          var pendingAuth = false
+          DeviceEventEmitter.addListener('url', function(e: Event) {
+                      console.log("deep link " + pendingAuth)
+                      if (e.url && !pendingAuth) {
+                         pendingAuth = true
+                         var parts = e.url.split(":")
+                         if (parts.length > 1 ) {
+                         console.log("deep link " + parts[1])
+                         RNBlockstackSdk.handlePendingSignIn(parts[1])
+                           .then(function(result) {
+                                  console.log("handleAuthResponse " + JSON.stringify(result))
+                                  app.setState({userData:{decentralizedID:result["decentralizedID"]}, loaded:result["loaded"]})
+                                  pendingAuth = false
+                              },
+                              function(error) {
+                                  console.log("handleAuthResponse " + JSON.stringify(error))
+                                  pendingAuth = false
+                              })
+                         }
+
+                      }
+                    });
+
       }
 
     render() {
@@ -67,37 +94,36 @@ export default class App extends Component<Props> {
       );
     }
 
-async createSession() {
-    config = {
-      appDomain:"https://flamboyant-darwin-d11c17.netlify.com",
-      scopes:["store_write"]
-    }
-    console.log("blockstack:" + RNBlockstackSdk)
-    hasSession = await RNBlockstackSdk.hasSession()
-    if (!hasSession["hasSession"]) {
-      result = await RNBlockstackSdk.createSession(config)
-      console.log("created " + result["loaded"])
-    } else {
-      console.log("reusing session")
-    }
-
-    if (this.props.authResponse) {
-      result = await RNBlockstackSdk.handleAuthResponse(this.props.authResponse)
-      console.log("userData " + JSON.stringify(result))
-      this.setState({userData:{decentralizedID:result["decentralizedID"]}, loaded:result["loaded"]})
-    } else {
-
-        var signedIn = await RNBlockstackSdk.isUserSignedIn()
-         if (signedIn["signedIn"]) {
-            console.log("user is signed in")
-            var userData = await RNBlockstackSdk.loadUserData()
-            console.log("userData " + JSON.stringify(userData))
-            this.setState({userData:{decentralizedID:userData["decentralizedID"]}, loaded:result["loaded"]})
+    async createSession() {
+       config = {
+          appDomain:"https://flamboyant-darwin-d11c17.netlify.com",
+          scopes:["store_write"]
+        }
+        console.log("blockstack:" + RNBlockstackSdk)
+        hasSession = await RNBlockstackSdk.hasSession()
+        if (!hasSession["hasSession"]) {
+          result = await RNBlockstackSdk.createSession(config)
+          console.log("created " + result["loaded"])
         } else {
-            this.setState({loaded:result["loaded"]})
+          console.log("reusing session")
+        }
+
+        if (this.props.authResponse) {
+          result = await RNBlockstackSdk.handleAuthResponse(this.props.authResponse)
+          console.log("userData " + JSON.stringify(result))
+          this.setState({userData:{decentralizedID:result["decentralizedID"]}, loaded:result["loaded"]})
+        } else {
+            var signedIn = await RNBlockstackSdk.isUserSignedIn()
+             if (signedIn["signedIn"]) {
+                console.log("user is signed in")
+                var userData = await RNBlockstackSdk.loadUserData()
+                console.log("userData " + JSON.stringify(userData))
+                this.setState({userData:{decentralizedID:userData["decentralizedID"]}, loaded:result["loaded"]})
+            } else {
+                this.setState({loaded:result["loaded"]})
+            }
         }
     }
-}
 
   async signIn() {
     console.log("signIn")
