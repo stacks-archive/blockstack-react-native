@@ -13,13 +13,13 @@ The repository also contains [a playground](example-react-native) for developing
 ## Usage (Android)
 
 1. git clone this repo
-1. git clone blockstack-android repo
 1. Open example-sdk-module/android/build.gradle in Android Studio
-1. You should see the three module:
+1. You should see the two modules:
     1. `app`: the Android code of the example, 
     1. `.._.._BlockstackSDK`: the Android code of the React Native Blockstack component 
-    1. `BlockstackAndroidSDK`: the Blockstack Android SDK code
 1. Open file `example-sdk-module/Apps.js` in Android Studio if you want to change the app.
+1. In terminal, cd to `example-sdk-module`
+1. Run `react-native run-android` 
 
 
 
