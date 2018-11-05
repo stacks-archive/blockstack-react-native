@@ -1,6 +1,6 @@
 
-# react-native-blockstack
-
+# react-native-blockstack [![npm version](https://img.shields.io/npm/v/react-native-blockstack.svg)](https://www.npmjs.com/package/react-native-blockstack)
+*Decentralized identity and storage with Blockstack in React Native*
 ## Getting started
 
 `$ npm install react-native-blockstack --save`
