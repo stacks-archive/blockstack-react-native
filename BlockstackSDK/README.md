@@ -47,6 +47,45 @@
 ```javascript
 import RNBlockstackSdk from 'react-native-blockstack';
 
-// TODO: What to do with the module?
-RNBlockstackSdk;
+// check whether a blockstack session is running
+result = await RNBlockstackSdk.hasSession()
+hasSession = result["hasSession"]
+
+// create a new session (replace with your app domain)
+config = {
+      appDomain:"https://example.com",
+      scopes:["store_write"]
+}
+session = await RNBlockstackSdk.createSession(config)
+
+// sign user in (starts redirect to blockstack browser)
+await RNBlockstackSdk.signIn()
+
+// handle auth response, e.g. from a prop
+result = await RNBlockstackSdk.handleAuthResponse(this.props.authResponse)
+did = result["decentralizedID"]
+
+// sign user out
+result = await RNBlockstackSdk.signUserOut()
+success = result["signedOut"]
+
+// check whether a user is signed in
+result = await RNBlockstackSdk.isUserSignedIn()
+signedIn["signedIn"]
+
+// read profile data of signed in user
+result = await RNBlockstackSdk.loadUserData()
+did = result["decentralizedID"]
+                
+// put file, e.g. store unencrypted text in "text.txt"
+content = "Hello React Native"
+options = {encrypt: false}
+result = await RNBlockstackSdk.putFile("text.txt", content, options)
+fileUrl = result["fileUrl"]
+
+// get file, e.g. read unencrypted text from "text.txt"
+options = {decrypt:false}
+result = await RNBlockstackSdk.getFile("text.txt", options)
+fileContents = result["fileContents"]
+
 ```

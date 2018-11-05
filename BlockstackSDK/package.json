@@ -11,7 +11,7 @@
     "blockstack"
   ],
   "author": "",
-  "license": "",
+  "license": "MIT",
   "peerDependencies": {
     "react": "16.4.1",
     "react-native": "0.56.0"
