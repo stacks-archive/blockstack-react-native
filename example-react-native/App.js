@@ -43,7 +43,8 @@ export default class App extends Component {
 
         <Button title="Sign out" onPress={() => this.signOut()}
         disabled = {!this.state.loaded || this.state.userData == null}/>
-        
+        <Text>-----------</Text>
+
         <Button title="Put file" onPress={() => this.putFile()}
         disabled = {!this.state.loaded || this.state.userData == null}/>
         <Text>{this.state.fileUrl}</Text>
@@ -63,7 +64,14 @@ export default class App extends Component {
     result = await blockstack.createSession(config)
 
     console.log("created " + result["loaded"])
-    this.setState({loaded:result["loaded"]})
+    if (blockstack.isUserSignedIn()) {
+        console.log("user is signed in")
+        userData = blockstack.loadUserData()
+        console.log("userData " + JSON.stringify(userData))
+        this.setState({userData, loaded:result["loaded"]})
+    } else {
+        this.setState({loaded:result["loaded"]})
+    }
   }
 
   async signIn() {
