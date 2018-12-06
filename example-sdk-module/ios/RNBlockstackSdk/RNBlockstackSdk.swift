@@ -15,12 +15,15 @@ class RNBlockstackSdk: NSObject {
     let defaultErrorCode = "0"
     var bridge: RCTBridge!
     
-    @objc public func isUserSignedIn(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    private var config: [String: Any]?
+    
+    @objc public func isUserSignedIn(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve(["singedIn": Blockstack.shared.isUserSignedIn()])
     }
     
     // TODO: Do we need this?
     @objc public func createSession(_ config: NSDictionary?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        self.config = config as? [String: Any]
         resolve(["loaded": true])
     }
     
@@ -29,9 +32,22 @@ class RNBlockstackSdk: NSObject {
         resolve(true)
     }
     
-    @objc public func signIn(_ redirectURI: String, appDomain: URL, manifestURI: URL, scopes: [String], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    // TODO: Remove reliance on session config.
+    @objc public func signIn(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        guard let config = self.config,
+            let redirectUrl = config["redirectUrl"] as? String,
+            let appDomainString = config["appDomain"] as? String,
+            let appDomain = URL(string: appDomainString) else {
+                reject(self.defaultErrorCode, "Invalid session config", nil)
+                return
+        }
+        var manifestURI: URL?
+        if let manifestPath = config["manifestUrl"] as? String {
+            manifestURI = URL(string: manifestPath)
+        }
+        let scopes = config["scopes"] as? [String] ?? ["store_write"]
         // TODO: REJECT when cancelled or failed, and handle this in App.js
-        Blockstack.shared.signIn(redirectURI: redirectURI, appDomain: appDomain) { authResult in
+        Blockstack.shared.signIn(redirectURI: redirectUrl, appDomain: appDomain, manifestURI: manifestURI, scopes: scopes) { authResult in
             var error: Any = NSNull()
             let data: [String: Any]
             switch authResult {

@@ -17,7 +17,7 @@ RCT_EXTERN_METHOD(createSession:(NSDictionary *)config resolve:(RCTPromiseResolv
 
 RCT_EXTERN_METHOD(hasSession:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(signIn:(NSString *)redirectURI appDomain:(NSURL *)appDomain manifestURI:(NSURL *)manifestURI scopes:(NSArray<NSString *> *)scopes resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(signIn:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(signUserOut:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 

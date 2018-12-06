@@ -97,7 +97,8 @@ export default class App extends Component<Props> {
     async createSession() {
        config = {
           appDomain:"https://flamboyant-darwin-d11c17.netlify.com",
-          scopes:["store_write"]
+          scopes:["store_write"],
+          redirectUrl:"rnblockstackapp"
         }
         console.log("blockstack:" + RNBlockstackSdk)
         hasSession = await RNBlockstackSdk.hasSession()
@@ -138,7 +139,7 @@ export default class App extends Component<Props> {
     result = await RNBlockstackSdk.signUserOut()
 
     console.log(JSON.stringify(result))
-    if (result["signedOut"]) {
+    if (result["ed"]) {
       this.setState({userData: null})
     }
   }
