@@ -82,6 +82,18 @@ class RNBlockstackSdk: NSObject {
         resolve(["signedOut": true])
     }
     
+    @objc public func loadUserData(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        let userData = Blockstack.shared.loadUserData()
+        
+        guard let data = userData, var result = data.dictionary else {
+            resolve(["loaded": false, "decentralizedID": NSNull()])
+            return
+        }
+        result["loaded"] = true
+        result["decentralizedID"] = data.username
+        resolve(result)
+    }
+    
     @objc public func putFile(_ fileName: String!, content: String!, options: NSDictionary?, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         let encrypt = options?["encrypt"] as? Bool ?? false
         Blockstack.shared.putFile(to: fileName, text: content, encrypt: encrypt) { result, error in
