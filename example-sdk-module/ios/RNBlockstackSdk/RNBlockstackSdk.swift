@@ -18,7 +18,7 @@ class RNBlockstackSdk: NSObject {
     private var config: [String: Any]?
     
     @objc public func isUserSignedIn(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
-        resolve(["singedIn": Blockstack.shared.isUserSignedIn()])
+        resolve(["signedIn": Blockstack.shared.isUserSignedIn()])
     }
     
     // TODO: Do we need this?
