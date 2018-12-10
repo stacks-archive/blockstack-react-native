@@ -96,9 +96,9 @@ export default class App extends Component<Props> {
 
     async createSession() {
        config = {
-          appDomain:"https://flamboyant-darwin-d11c17.netlify.com",
+          appDomain:"https://pedantic-mahavira-f15d04.netlify.com",
           scopes:["store_write"],
-          redirectUrl:"rnblockstackapp"
+          redirectUrl:"https://pedantic-mahavira-f15d04.netlify.com/redirect.html"
         }
         console.log("blockstack:" + RNBlockstackSdk)
         hasSession = await RNBlockstackSdk.hasSession()
@@ -148,7 +148,9 @@ export default class App extends Component<Props> {
     this.setState({fileUrl: "uploading..."})
     content = "Hello React Native"
     options = {encrypt: false}
+    console.log("\n\n\n\n\nPUT FILE START\n\n\n\n")
     result = await RNBlockstackSdk.putFile(textFileName, content, options)
+    console.log("\n\n\n\n\nPUT FILE END\n\n\n\n")
     console.log(JSON.stringify(result))
     this.setState({fileUrl: result["fileUrl"]})
   }
