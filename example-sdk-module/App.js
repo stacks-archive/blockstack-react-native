@@ -139,7 +139,7 @@ export default class App extends Component<Props> {
     result = await RNBlockstackSdk.signUserOut()
 
     console.log(JSON.stringify(result))
-    if (result["ed"]) {
+    if (result["signedOut"]) {
       this.setState({userData: null})
     }
   }
@@ -148,9 +148,7 @@ export default class App extends Component<Props> {
     this.setState({fileUrl: "uploading..."})
     content = "Hello React Native"
     options = {encrypt: false}
-    console.log("\n\n\n\n\nPUT FILE START\n\n\n\n")
     result = await RNBlockstackSdk.putFile(textFileName, content, options)
-    console.log("\n\n\n\n\nPUT FILE END\n\n\n\n")
     console.log(JSON.stringify(result))
     this.setState({fileUrl: result["fileUrl"]})
   }
