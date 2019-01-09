@@ -5,7 +5,7 @@
 
 `$ npm install react-native-blockstack --save`
 
-### Mostly automatic installation
+### Mostly automatic installation (not for iOS, see steps below)
 
 `$ react-native link react-native-blockstack
 
@@ -14,9 +14,36 @@
 
 #### iOS
 
-1. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
-2. Go to `node_modules` ➜ `react-native-blockstack` and add `RNBlockstackSdk.xcodeproj`
-3. In XCode, in the project navigator, select your project. Add `libRNBlockstackSdk.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
+##### Setup Cocoapods
+1. Install cocoapods, `sudo gem install cocoapods`
+2. In the terminal, navigate to your project root and use command `pod init`
+3. In the created `Podfile`, add the following lines:
+    ```
+    use_frameworks!
+
+    pod 'Blockstack'
+    pod 'React', :path => '../node_modules/react-native', :subspecs => [
+        'Core',
+        'CxxBridge', # Include this for RN >= 0.47
+        'DevSupport', # Include this to enable In-App Devmenu if RN >= 0.43
+        'RCTText',
+        'RCTNetwork',
+        'RCTWebSocket', # Needed for debugging
+        # Add any other subspecs you want to use in your project
+    ]
+    # Explicitly include Yoga if you are using RN >= 0.42.0
+    pod 'yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
+    # Third party deps podspec link
+    pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
+    pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
+    pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
+    ```
+4. From the terminal, enter `pod install`
+5. Open the newly created `[your project's name].xcworkspace` project. Note: Always use this file and not the .xcodeproj file when opening your project.
+
+##### Add module
+1. In XCode, in the project navigator, right click your project and select `Add Files to [your project's name]`
+2. Go to `node_modules` ➜ `react-native-blockstack` ➜ `ios` and add the `RNBlockstackSdk` folder
 4. Run your project (`Cmd+R`)<
 
 #### Android
