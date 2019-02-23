@@ -29,7 +29,8 @@ export default class App extends Component<Props> {
               loaded: false,
               userData: null,
               fileContents: null,
-              fileUrl: null
+              fileUrl: null,
+              encryptionStatus:"",
           };
         }
 
@@ -90,6 +91,10 @@ export default class App extends Component<Props> {
           <Button title="Get file" onPress={() => this.getFile()}
           disabled = {!this.state.loaded || this.state.userData == null}/>
           <Text>{this.state.fileContents}</Text>
+
+          <Button title="Encrypt-Decrypt" onPress={() => this.encryptDecrypt()}
+          disabled = {!this.state.loaded || this.state.userData == null}/>
+          <Text>Encryption status: {this.state.encryptionStatus}</Text>
         </View>
       );
     }
@@ -150,6 +155,28 @@ export default class App extends Component<Props> {
     result = await RNBlockstackSdk.putFile(textFileName, content, options)
     console.log(JSON.stringify(result))
     this.setState({fileUrl: result["fileUrl"]})
+  }
+
+  async encryptDecrypt() {
+    var content = "Blockstack is awesome!"
+    
+    // using app public, private keys
+    var cipherText = await RNBlockstackSdk.encryptContent(content, {})
+    console.log("ciphertext:", cipherText)
+    var plainText = await RNBlockstackSdk.decryptContent(JSON.stringify(cipherText), false, {})
+    console.log("plaintext:", plainText)
+    
+    // using provided keys
+    var ecPrivateKey = "a5c61c6ca7b3e7e55edee68566aeab22e4da26baa285c7bd10e8d2218aa3b229";
+    var ecPublicKey = "027d28f9951ce46538951e3697c62588a87f1f1f295de4a14fdd4c780fc52cfe69"
+    cipherText = await RNBlockstackSdk.encryptContent(content, {publicKey: ecPublicKey})
+    console.log("ciphertext:", cipherText)
+    var plainText = await RNBlockstackSdk.decryptContent(JSON.stringify(cipherText), false, {privateKey: ecPrivateKey})
+    console.log("plaintext:", plainText)
+  
+    if (content == plainText)
+      this.setState({ encryptionStatus: "SUCCESS" })
+
   }
 
   async getFile() {
