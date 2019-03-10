@@ -96,8 +96,9 @@ export default class App extends Component<Props> {
 
     async createSession() {
        config = {
-          appDomain:"https://flamboyant-darwin-d11c17.netlify.com",
-          scopes:["store_write"]
+          appDomain:"https://pedantic-mahavira-f15d04.netlify.com",
+          scopes:["store_write"],
+          redirectUrl:"https://pedantic-mahavira-f15d04.netlify.com/redirect.html"
         }
         console.log("blockstack:" + RNBlockstackSdk)
         hasSession = await RNBlockstackSdk.hasSession()
