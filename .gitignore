@@ -58,3 +58,5 @@ freeline/
 freeline_project_description.json
 
 .idea/caches
+*.xcworkspacedata
+example-sdk-module/ios/example-sdk-module.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist

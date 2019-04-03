@@ -106,18 +106,20 @@ export default class App extends Component<Props> {
     );
   }
 
+  
   async createSession() {
     config = {
-      appDomain: "https://flamboyant-darwin-d11c17.netlify.com",
-      scopes: ["store_write"]
-    }
-    console.log("blockstack:" + RNBlockstackSdk)
-    hasSession = await RNBlockstackSdk.hasSession()
-    if (!hasSession["hasSession"]) {
-      result = await RNBlockstackSdk.createSession(config)
-      console.log("created " + result["loaded"])
-    } else {
-      console.log("reusing session")
+       appDomain:"https://pedantic-mahavira-f15d04.netlify.com",
+       scopes:["store_write"],
+       redirectUrl:"https://pedantic-mahavira-f15d04.netlify.com/redirect.html"
+     }
+     console.log("blockstack:" + RNBlockstackSdk)
+     hasSession = await RNBlockstackSdk.hasSession()
+     if (!hasSession["hasSession"]) {
+       result = await RNBlockstackSdk.createSession(config)
+       console.log("created " + result["loaded"])
+     } else {
+       console.log("reusing session")
     }
 
     if (this.props.authResponse) {
