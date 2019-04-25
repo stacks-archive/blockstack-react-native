@@ -33,7 +33,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
         try {
             @Suppress("SENSELESS_COMPARISON")
             map.putBoolean("hasSession", session != null)
-        } catch (e:Exception) {
+        } catch (e: Exception) {
             map.putBoolean("hasSession", false)
         }
         promise.resolve(map)
@@ -176,7 +176,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
         if (session.loaded) {
             runOnV8Thread {
                 val userData = session.loadUserData()
-                if ( userData != null) {
+                if (userData != null) {
                     promise.resolve(convertJsonToMap(userData.json))
                 } else {
                     promise.reject("NOT_SIGNED_IN", "Not signed in")
@@ -193,7 +193,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
             runOnV8Thread {
                 val options = PutFileOptions(optionsArg.getBoolean("encrypt"))
                 session.putFile(path, content, options) {
-                    Log.d("RNBlockstackSdkModuel", "putFile result")
+                    Log.d("RNBlockstackSdkModule", "putFile result")
                     if (it.hasValue) {
                         val map = Arguments.createMap()
                         map.putString("fileUrl", it.value)
@@ -227,6 +227,53 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
             }
         }
     }
+
+    @ReactMethod
+    fun encryptContent(plaintext: String, optionsArg: ReadableMap, promise: Promise) {
+        if (canUseBlockstack()) {
+            runOnV8Thread {
+                try {
+                    var publicKeyArg: String? = null;
+                    if (optionsArg.hasKey("publicKey")) {
+                        publicKeyArg = optionsArg.getString("publicKey")
+                    }
+                    val options = if (publicKeyArg == null) CryptoOptions() else CryptoOptions(publicKey = publicKeyArg)
+                    val encryptionResult = session.encryptContent(plaintext, options)
+                    if (encryptionResult.hasErrors) {
+                        promise.reject("ERROR", "Failed to encrypt content: " + encryptionResult.error.toString())
+                    } else if (encryptionResult.hasValue) {
+                        promise.resolve(convertJsonToMap(encryptionResult.value!!.json))
+                    } else {
+                        promise.reject("ERROR", "Failed to encrypt content: ")
+                    }
+                } catch (e: Exception) {
+                    promise.reject("ERROR", "Failed to decrypt content: " + e.toString())
+                }
+            }
+        }
+    }
+
+
+    @ReactMethod
+    fun decryptContent(ciphertext: String, binary: Boolean, optionsArg: ReadableMap, promise: Promise) {
+        if (canUseBlockstack()) {
+            runOnV8Thread {
+                try {
+                    var privateKeyArg: String? = null;
+                    if (optionsArg.hasKey("privateKey")) {
+                        privateKeyArg = optionsArg.getString("privateKey")
+                    }
+                    val options = if (privateKeyArg == null) CryptoOptions() else CryptoOptions(privateKey = privateKeyArg)
+                    val decryptionResult = session.decryptContent(cipherObject = ciphertext, binary = binary, options = options)
+                    promise.resolve(decryptionResult!!.value.toString())
+
+                } catch (e: Exception) {
+                    promise.reject("ERROR", "Failed to decrypt content: " + e.toString())
+                }
+            }
+        }
+    }
+
 
     private fun canUseBlockstack() = session.loaded && reactApplicationContext.currentActivity != null
 
