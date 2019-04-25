@@ -6,9 +6,16 @@ import android.os.HandlerThread
 import android.util.Base64
 import android.util.Log
 import com.facebook.react.bridge.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
-import org.blockstack.android.sdk.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.blockstack.android.sdk.BlockstackSession
+import org.blockstack.android.sdk.Executor
+import org.blockstack.android.sdk.Scope
+import org.blockstack.android.sdk.model.BlockstackConfig
+import org.blockstack.android.sdk.model.CryptoOptions
+import org.blockstack.android.sdk.model.GetFileOptions
+import org.blockstack.android.sdk.model.PutFileOptions
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -20,7 +27,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
 
     override fun getConstants(): MutableMap<String, Any> {
         val constants = HashMap<String, Any>()
-        return constants;
+        return constants
     }
 
     private lateinit var session: BlockstackSession
@@ -41,14 +48,15 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun createSession(configArg: ReadableMap, promise: Promise) {
-        val activity = getReactApplicationContext().currentActivity
+        val activity = reactApplicationContext.currentActivity
         if (activity != null) {
             val scopes = configArg.getArray("scopes")
-                    .toArrayList().map {
+                    ?.toArrayList()
+                    ?.map {
                         Scope.valueOf((it as String)
                                 .split("_").joinToString("") { it.capitalize() })
                     }
-                    .toTypedArray()
+                    ?.toTypedArray()
 
             if (!configArg.hasKey("appDomain")) {
                 throw IllegalArgumentException("'appDomain' needed in config object")
@@ -65,7 +73,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
             } else {
                 "/redirect"
             }
-            val config = BlockstackConfig(URI(appDomain), redirectPath, manifestPath, scopes)
+            val config = BlockstackConfig(URI(appDomain), redirectPath!!, manifestPath!!, scopes!!)
 
             handlerThread.start()
             handler = Handler(handlerThread.looper)
@@ -85,7 +93,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
                     }
 
                     override fun onNetworkThread(function: suspend () -> Unit) {
-                        async(CommonPool) {
+                        GlobalScope.launch(Dispatchers.IO) {
                             function()
                         }
                     }
@@ -233,7 +241,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
         if (canUseBlockstack()) {
             runOnV8Thread {
                 try {
-                    var publicKeyArg: String? = null;
+                    var publicKeyArg: String? = null
                     if (optionsArg.hasKey("publicKey")) {
                         publicKeyArg = optionsArg.getString("publicKey")
                     }
@@ -259,13 +267,13 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
         if (canUseBlockstack()) {
             runOnV8Thread {
                 try {
-                    var privateKeyArg: String? = null;
+                    var privateKeyArg: String? = null
                     if (optionsArg.hasKey("privateKey")) {
                         privateKeyArg = optionsArg.getString("privateKey")
                     }
                     val options = if (privateKeyArg == null) CryptoOptions() else CryptoOptions(privateKey = privateKeyArg)
                     val decryptionResult = session.decryptContent(cipherObject = ciphertext, binary = binary, options = options)
-                    promise.resolve(decryptionResult!!.value.toString())
+                    promise.resolve(decryptionResult.value.toString())
 
                 } catch (e: Exception) {
                     promise.reject("ERROR", "Failed to decrypt content: " + e.toString())
