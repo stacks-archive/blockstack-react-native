@@ -63,17 +63,19 @@ public class MainActivity extends ReactActivity {
         final BlockstackSession session = RNBlockstackSdkModule.getCurrentSession();
         final ReactContext reactContext = getReactInstanceManager().getCurrentReactContext();
         if (authResponse != null && session != null && reactContext != null) {
-            Log.d(TAG, "received" + authResponse);
+            Log.d(TAG, "received " + authResponse);
             WritableMap params = Arguments.createMap();
             params.putString("authResponse", authResponse);
             sendEvent(reactContext, "onNewEvent", params);
+            Log.d(TAG, "done");
+
         }
     }
 
     private String getAuthResponse(Intent intent) {
-        String response = intent.getDataString();
+        String response = intent.getData().getQuery();
         if (response != null) {
-            String[] authResponseTokens = response.split(":");
+            String[] authResponseTokens = response.split("=");
 
             if (authResponseTokens.length > 1) {
                 final String authResponse = authResponseTokens[1];
