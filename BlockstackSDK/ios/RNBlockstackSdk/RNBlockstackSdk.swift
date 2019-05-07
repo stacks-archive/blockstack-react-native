@@ -29,7 +29,7 @@ class RNBlockstackSdk: NSObject {
     
     // TODO: Handle as RCTResponseSenderBlock in iOS and Callback in Android
     @objc public func hasSession(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
-        resolve("hasSession": Blockstack.shared.hasSession)
+        resolve(["hasSession": Blockstack.shared.hasSession])
     }
     
     // TODO: Remove reliance on session config.

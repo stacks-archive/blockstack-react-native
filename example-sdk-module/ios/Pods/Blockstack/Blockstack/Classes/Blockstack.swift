@@ -6,16 +6,24 @@
 //
 
 import Foundation
+import AuthenticationServices
 import SafariServices
 import JavaScriptCore
 
 public typealias Bytes = Array<UInt8>
 
+fileprivate var betaBrowserDefaultsKey = "isBetaBrowserEnabled"
+
 public enum BlockstackConstants {
+    public static var BrowserWebAppURL: String {
+        return UserDefaults.standard.bool(forKey: betaBrowserDefaultsKey) ?
+            "https://beta.browser.blockstack.org" :
+        "https://browser.blockstack.org"
+    }
+
     public static let DefaultCoreAPIURL = "https://core.blockstack.org"
-    public static let BrowserWebAppURL = "https://browser.blockstack.org"
-    public static let BrowserWebAppAuthEndpoint = "https://browser.blockstack.org/auth"
-    public static let BrowserWebClearAuthEndpoint = "https://browser.blockstack.org/clear-auth"
+    public static let BrowserWebAppAuthEndpoint = "\(BrowserWebAppURL)/auth"
+    public static let BrowserWebClearAuthEndpoint = "\(BrowserWebAppURL)/clear-auth"
     public static let NameLookupEndpoint = "https://core.blockstack.org/v1/names/"
     public static let AuthProtocolVersion = "1.1.0"
     public static let DefaultGaiaHubURL = "https://hub.blockstack.org"
@@ -24,12 +32,25 @@ public enum BlockstackConstants {
     public static let AppOriginUserDefaultLabel = "BLOCKSTACK_APP_ORIGIN"
 }
 
+/**
+ A class that contains the native swift implementations of Blockstack.js methods and Blockstack network operations.
+ */
 @objc open class Blockstack: NSObject {
 
+    /**
+     A shared instance of Blockstack that exists for the lifetime of your app. Use this instance instead of creating your own.
+     */
     @objc public static let shared = Blockstack()
     
-    var sfAuthSession : SFAuthenticationSession?
-
+    /**
+     Use the latest, beta version of the Blockstack browser (https://beta.browser.blockstack.org) for authentication.
+    */
+    @objc public var isBetaBrowserEnabled = false {
+        didSet {
+            UserDefaults.standard.set(self.isBetaBrowserEnabled, forKey: betaBrowserDefaultsKey)
+        }
+    }
+    
     // - MARK: Authentication
     
     /**
@@ -41,10 +62,10 @@ public enum BlockstackConstants {
      - parameter completion: Callback with an AuthResult object.
      */
     public func signIn(redirectURI: String,
-                    appDomain: URL,
-                     manifestURI: URL? = nil,
-                     scopes: Array<String> = ["store_write"],
-                     completion: @escaping (AuthResult) -> ()) {
+                       appDomain: URL,
+                       manifestURI: URL? = nil,
+                       scopes: Array<String> = ["store_write"],
+                       completion: @escaping (AuthResult) -> ()) {
         print("signing in")
         
         guard let transitKey = Keys.makeECPrivateKey() else {
@@ -66,16 +87,18 @@ public enum BlockstackConstants {
         var urlComps = URLComponents(string: BlockstackConstants.BrowserWebAppAuthEndpoint)!
         urlComps.queryItems = [URLQueryItem(name: "authRequest", value: authRequest), URLQueryItem(name: "client", value: "ios_secure")]
         let url = urlComps.url!
-        
-        // TODO: Use ASWebAuthenticationSession for iOS 12
-        var responded = false
-        self.sfAuthSession = SFAuthenticationSession(url: url, callbackURLScheme: redirectURI) { (url, error) in
-            guard !responded else {
+
+        var didRespond = false
+        let completion: (URL?, Error?) -> () = { url, error in
+            guard !didRespond else {
                 return
             }
-            responded = true
-            
+            didRespond = true
+
+            // Discard auth session
+            self.asWebAuthSession = nil
             self.sfAuthSession = nil
+            
             guard error == nil, let queryParams = url?.queryParameters, let authResponse = queryParams["authResponse"] else {
                 completion(AuthResult.failed(error))
                 return
@@ -88,7 +111,16 @@ public enum BlockstackConstants {
                                     transitPrivateKey: transitKey,
                                     completion: completion)
         }
-        self.sfAuthSession?.start()
+        
+        if #available(iOS 12.0, *) {
+            let authSession = ASWebAuthenticationSession(url: url, callbackURLScheme: redirectURI, completionHandler: completion)
+            authSession.start()
+            self.asWebAuthSession = authSession
+        } else {
+            // Fallback on earlier versions
+            self.sfAuthSession = SFAuthenticationSession(url: url, callbackURLScheme: redirectURI, completionHandler: completion)
+            self.sfAuthSession?.start()
+        }
     }
     
     /**
@@ -125,6 +157,14 @@ public enum BlockstackConstants {
     }
     
     /**
+     Generates a ECDSA keypair and stores the hex value of the private key in local storage.
+     - returns: The hex encoded private key, or nil if key generation failed.
+     */
+    public func generateTransitKey() -> String? {
+        return Keys.makeECPrivateKey()
+    }
+
+    /**
      Retrieves the user data object. The user's profile is stored in the key `profile`.
      */
     public func loadUserData() -> UserData? {
@@ -147,15 +187,30 @@ public enum BlockstackConstants {
     }
     
     /**
+     Clear Gaia session.
+    */
+    @objc public func clearGaiaSession() {
+        Gaia.clearSession()
+    }
+    
+    /**
      Prompt web flow to clear the keychain and all settings for this device.
      WARNING: This will reset the keychain for all apps using Blockstack sign in. Apps that are already signed in will not be affected, but the user will have to reenter their 12 word seed to sign in to any new apps.
      */
     @objc public func promptClearDeviceKeychain() {
-        // TODO: Use ASWebAuthenticationSession for iOS 12
-        self.sfAuthSession = SFAuthenticationSession(url: URL(string: "\(BlockstackConstants.BrowserWebClearAuthEndpoint)")!, callbackURLScheme: nil) { _, error in
-            self.sfAuthSession = nil
+        let url = URL(string: "\(BlockstackConstants.BrowserWebClearAuthEndpoint)")!
+        if #available(iOS 12.0, *) {
+            let authSession = ASWebAuthenticationSession(url: url, callbackURLScheme: nil) { _, _ in
+                self.asWebAuthSession = nil
+            }
+            authSession.start()
+            self.asWebAuthSession = authSession
+        } else {
+            self.sfAuthSession = SFAuthenticationSession(url: url, callbackURLScheme: nil) { _, _ in
+                self.sfAuthSession = nil
+            }
+            self.sfAuthSession?.start()
         }
-        self.sfAuthSession?.start()
     }
     
     // - MARK: Profiles
@@ -206,7 +261,7 @@ public enum BlockstackConstants {
                 throw error
             }
         } else {
-            guard let jsonString = JSONTokens().decodeToken(token: token),
+            guard let jsonString = JSONTokensJS().decodeToken(token: token),
                 let data = jsonString.data(using: .utf8) else {
                     return nil
             }
@@ -221,7 +276,7 @@ public enum BlockstackConstants {
      - returns: WrappedToken object containing `token` and `decodedToken`
      */
     public func wrapProfileToken(token: String) -> ProfileTokenFile? {
-        guard let jsonString = JSONTokens().decodeToken(token: token),
+        guard let jsonString = JSONTokensJS().decodeToken(token: token),
             let data = jsonString.data(using: .utf8) else {
                 return nil
         }
@@ -272,7 +327,7 @@ public enum BlockstackConstants {
             let payloadJSON = payloadJSONObject as? [String: Any] else {
                 return nil
         }
-        return JSONTokens().signToken(payload: payloadJSON, privateKey: privateKey, algorithm: signingAlgorithm)
+        return JSONTokensJS().signToken(payload: payloadJSON, privateKey: privateKey, algorithm: signingAlgorithm)
     }
     
     /**
@@ -283,7 +338,7 @@ public enum BlockstackConstants {
      - throws: Throws an error if token verification fails
      */
     public func verifyProfileToken(token: String, publicKeyOrAddress: String) throws -> ProfileToken {
-        let jsonTokens = JSONTokens()
+        let jsonTokens = JSONTokensJS()
         guard let jsonString = jsonTokens.decodeToken(token: token),
             let data = jsonString.data(using: .utf8),
             let decodedToken = try? JSONDecoder().decode(ProfileToken.self, from: data),
@@ -315,7 +370,6 @@ public enum BlockstackConstants {
             publicKeyOrAddress == compressedAddress {
             // pass
         } else {
-            // TODO: FAIL
             throw NSError.create(description: "Token verification failed")
         }
         
@@ -328,11 +382,64 @@ public enum BlockstackConstants {
         }
         return decodedToken
     }
+
+    /**
+     Validates the social proofs in a user's profile. Currently supports validation of Facebook, Twitter, GitHub, Instagram, LinkedIn and HackerNews accounts.
+     - parameter profile: The Profile to be validated.
+     - parameter ownerAddress: The owner bitcoin address to be validated.
+     - parameter completion: Callback with an array of validated proof objects, or nil if there was an error.
+     */
+    public func validateProofs(profile: Profile, ownerAddress: String, completion: @escaping ([ExternalAccountProof]?) -> ()) {
+        guard let profileData = try? JSONEncoder().encode(profile),
+            let profileJSON = String(data: profileData, encoding: .utf8) else {
+                return
+        }
+        ProfileProofsJS().validateProofs(profile: profileJSON, ownerAddress: ownerAddress, name: nil) { proofs in
+            completion(proofs)
+        }
+    }
     
-    public func validateProofs(profile: Profile, ownerAddress: String) {
+    /**
+     Validates the social proofs in a user's profile. Currently supports validation of Facebook, Twitter, GitHub, Instagram, LinkedIn and HackerNews accounts.
+     - parameter profile: The Profile to be validated.
+     - parameter name: The Blockstack name to be validated
+     - parameter completion: Callback with an array of validated proof objects, or nil if there was an error.
+     */
+    public func validateProofs(profile: Profile, name: String, completion: @escaping ([ExternalAccountProof]?) -> ()) {
+        guard let profileData = try? JSONEncoder().encode(profile),
+            let profileJSON = String(data: profileData, encoding: .utf8) else {
+                return
+        }
+        ProfileProofsJS().validateProofs(profile: profileJSON, ownerAddress: nil, name: name) { proofs in
+            completion(proofs)
+        }
     }
     
     // - MARK: Storage
+    
+    /**
+     Get the app storage bucket URL
+     - parameter gaiaHubURL: The Gaia hub URL.
+     - parameter: appPrivateKey: The app private key used to generate the app address.
+     */
+    @objc public func getAppBucketUrl(gaiaHubURL: URL, appPrivateKey: String, completion: @escaping (String?) -> ()) {
+        guard let privateKey = Blockstack.shared.loadUserData()?.privateKey,
+            let publicKey = Keys.getPublicKeyFromPrivate(privateKey),
+            let challengeSignerAddress = Keys.getAddressFromPublicKey(publicKey) else {
+                return
+        }
+        let task = URLSession.shared.dataTask(with: gaiaHubURL.appendingPathComponent("hub_info")) { data, response, error in
+            guard error == nil,
+                let data = data,
+                let jsonObject = try? JSONSerialization.jsonObject(with: data, options: .allowFragments),
+                let readURLPrefix = (jsonObject as? [String: Any])?["read_url_prefix"] else {
+                    completion(nil)
+                    return
+            }
+            completion("\(readURLPrefix)\(challengeSignerAddress)/")
+        }
+        task.resume()
+    }
     
     /**
      Fetch the public read URL of a user file for the specified app.
@@ -342,7 +449,11 @@ public enum BlockstackConstants {
      - parameter zoneFileLookupURL: The URL to use for zonefile lookup. Defaults to 'http://localhost:6270/v1/names/'.
      - parameter completion: Callback with public read URL of the file, if one was found.
      */
-    @objc public func getUserAppFileURL(at path: String, username: String, appOrigin: String, zoneFileLookupURL: URL = URL(string: "http://localhost:6270/v1/names/")!, completion: @escaping (URL?) -> ()) {
+    @objc public func getUserAppFileURL(at path: String,
+                                        username: String,
+                                        appOrigin: String,
+                                        zoneFileLookupURL: URL = URL(string: "http://localhost:6270/v1/names/")!,
+                                        completion: @escaping (URL?) -> ()) {
         // TODO: Return errors in completion handler
         Blockstack.shared.lookupProfile(username: username, zoneFileLookupURL: zoneFileLookupURL) { profile, error in
             guard error == nil,
@@ -355,7 +466,24 @@ public enum BlockstackConstants {
             completion(url)
         }
     }
-
+    
+    /**
+     List the set of files in this application's Gaia storage bucket.
+     - parameter callback: A callback to invoke on each named file that returns `true` to continue the listing operation or `false` to end it.
+     - parameter completion: Final callback that contains the number of files listed, or any error encountered.
+     */
+    @objc public func listFiles(callback: @escaping (_ filename: String) -> (Bool),
+                                completion: @escaping (_ fileCount: Int, _ error: Error?) -> Void) {
+        Gaia.getOrSetLocalHubConnection() { session, error in
+            guard let session = session, error == nil else {
+                print("gaia connection error")
+                completion(-1, GaiaError.connectionError)
+                return
+            }
+            session.listFilesLoop(page: nil, callCount: 0, fileCount: 0, callback: callback, completion: completion)
+        }
+    }
+    
     /**
      Stores the data provided in the app's data store to to the file specified.
      - parameter to: The path to store the data in
@@ -372,7 +500,21 @@ public enum BlockstackConstants {
                 completion(nil, error)
                 return
             }
-            session.putFile(to: path, content: text, encrypt: encrypt, completion: completion)
+            session.putFile(to: path, content: text, encrypt: encrypt) { url, error in
+                guard error != .configurationError else {
+                    // Retry with a new config
+                    Gaia.setLocalGaiaHubConnection() { session, error in
+                        guard let session = session, error == nil else {
+                            print("gaia connection error upon retry")
+                            completion(nil, error)
+                            return
+                        }
+                        session.putFile(to: path, content: text, encrypt: encrypt, completion: completion)
+                    }
+                    return
+                }
+                completion(url, error)
+            }
         }
     }
     
@@ -392,7 +534,21 @@ public enum BlockstackConstants {
                 completion(nil, error)
                 return
             }
-            session.putFile(to: path, content: bytes, encrypt: encrypt, completion: completion)
+            session.putFile(to: path, content: bytes, encrypt: encrypt) { url, error in
+                guard error != .configurationError else {
+                    // Retry with a new config
+                    Gaia.setLocalGaiaHubConnection() { session, error in
+                        guard let session = session, error == nil else {
+                            print("gaia connection error upon retry")
+                            completion(nil, error)
+                            return
+                        }
+                        session.putFile(to: path, content: bytes, encrypt: encrypt, completion: completion)
+                    }
+                    return
+                }
+                completion(url, error)
+            }
         }
     }
     
@@ -506,4 +662,10 @@ public enum BlockstackConstants {
         }
         return Encryption.decryptECIES(cipherObjectJSONString: content, privateKey: key)
     }
+
+    // MARK: - Private
+    
+    
+    private var asWebAuthSession: Any? // ASWebAuthenticationSession
+    private var sfAuthSession : SFAuthenticationSession?
 }
