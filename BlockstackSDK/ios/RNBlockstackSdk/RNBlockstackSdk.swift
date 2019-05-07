@@ -95,7 +95,7 @@ class RNBlockstackSdk: NSObject {
     }
     
     @objc public func putFile(_ fileName: String!, content: String!, options: NSDictionary?, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        let encrypt = options?["encrypt"] as? Bool ?? false
+        let encrypt = options?["encrypt"] as? Bool ?? true
         Blockstack.shared.putFile(to: fileName, text: content, encrypt: encrypt) { result, error in
             guard let fileUrl = result, error == nil else {
                 reject(self.defaultErrorCode, "putFile Error", error)
@@ -108,7 +108,7 @@ class RNBlockstackSdk: NSObject {
     @objc public func getFile(_ path: String!, options: NSDictionary?, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         // TODO: Support multiplayer
         // let username = options?["username"] as? String
-        let decrypt = options?["decrypt"] as? Bool ?? false
+        let decrypt = options?["decrypt"] as? Bool ?? true
         Blockstack.shared.getFile(at: path, decrypt: decrypt) {
             value, error in
             if decrypt {
