@@ -11,8 +11,12 @@
 
 ### Manual installation
 
-
 #### iOS
+
+##### Create project
+If you do not already have a react native project set up, create one via the React Native CLI. Follow Facebook's official getting started guide here: https://facebook.github.io/react-native/docs/getting-started.html.
+
+Once this is set up, move on to the next section to integrate the Blockstack SDK.
 
 ##### Setup Cocoapods
 1. Install cocoapods, `sudo gem install cocoapods`
@@ -44,7 +48,9 @@
 ##### Add module
 1. In XCode, in the project navigator, right click your project and select `Add Files to [your project's name]`
 2. Go to `node_modules` ➜ `react-native-blockstack` ➜ `ios` and add the `RNBlockstackSdk` folder
-4. Run your project (`Cmd+R`)<
+4. Run your project (`Cmd+R`)
+5. In your React Native project's App.js file, utilize relevant methods as defined in `RNBlockstackSdk.swift`
+    *  This is a community maintained repo. Feel free to add any missing functionality and submit a pull request :). 
 
 #### Android
 
