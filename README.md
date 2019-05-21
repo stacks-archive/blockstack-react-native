@@ -21,18 +21,18 @@ Once that is complete, move on to the platform specific instructions below.
 
 1. Clone this repo.
 2. Open a terminal on your desktop.
-3. In the terminal, navigate to the  `example-sdk-module` directory.
+3. In the terminal, navigate to the  `example/` directory.
 4. Run `npm install`
-5. In the terminal, navigate to the `example-sdk-module/ios` directory.
+5. In the terminal, navigate to the `example/ios` directory.
 6. Run `pod install`
-7. Open `example-sdk-module/ios/example-sdk-module.xcworkspace` in XCode.
+7. Open `example/ios/example-sdk-module.xcworkspace` in XCode.
     * The files under the `BlockstackSDK` folder are the React Native Blockstack component.
     * The rest of the project is a standard Objective-C iOS project, as created by the react native CLI's project generator.
-8. In the terminal, navigate to the  `example-sdk-module` directory.
+8. In the terminal, navigate to the  `example/` directory.
 9. Run `react-native run-ios`
     * Alternatively, you can run the iOS project directly from XCode.
 
-Note: The user interface and relevant logic is defined as part of `example-sdk-module/App.js`. Modify this file to change the app.
+Note: The user interface and relevant logic is defined as part of `example/App.js`. Modify this file to change the app.
 
 ## Usage (Android)
 
@@ -42,16 +42,16 @@ Note: The user interface and relevant logic is defined as part of `example-sdk-m
    git clone https://github.com/blockstack/blockstack-react-native.git
    ```
 
-2. Open `example-sdk-module/android/build.gradle` in Android Studio
+2. Open `example/android/build.gradle` in Android Studio
    You should see the two modules:
     * `app`: the Android code of the example, 
     * `.._.._BlockstackSDK`: the Android code of the React Native Blockstack component 
-3. Open the `example-sdk-module/App.js` file in Android Studio if you want to change the app.
+3. Open the `example/App.js` file in Android Studio if you want to change the app.
 4. Open a terminal on your desktop.
-5. Change to the `example-sdk-module` directory.
+5. Change to the `example` directory.
 
     ```
-    cd to `example-sdk-module`
+    cd to `example`
     ```
 6. Run `react-native run-android` 
 
