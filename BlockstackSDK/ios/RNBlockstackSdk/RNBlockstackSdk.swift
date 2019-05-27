@@ -16,7 +16,8 @@ class RNBlockstackSdk: NSObject {
     var bridge: RCTBridge!
     
     private var config: [String: Any]?
-    
+    private var isLoaded = false
+  
     @objc public func isUserSignedIn(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve(["signedIn": Blockstack.shared.isUserSignedIn()])
     }
@@ -24,12 +25,13 @@ class RNBlockstackSdk: NSObject {
     // TODO: Do we need this?
     @objc public func createSession(_ config: NSDictionary?, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         self.config = config as? [String: Any]
-        resolve(["loaded": true])
+        self.isLoaded = true
+        resolve(["loaded": self.isLoaded])
     }
     
     // TODO: Handle as RCTResponseSenderBlock in iOS and Callback in Android
     @objc public func hasSession(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
-        resolve(["hasSession": Blockstack.shared.hasSession])
+        resolve(["hasSession": self.isLoaded])
     }
     
     // TODO: Remove reliance on session config.
