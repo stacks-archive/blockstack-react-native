@@ -1,6 +1,9 @@
 
 # react-native-blockstack [![npm version](https://img.shields.io/npm/v/react-native-blockstack.svg)](https://www.npmjs.com/package/react-native-blockstack)
 *Decentralized identity and storage with Blockstack in React Native*
+
+Welcome to the React Native bridge of the Blockstack SDK. This bridge exists to help you get started quickly developing react native apps, but not all functionality available in the official native Blockstack SDK has been bridged over. As this is a community maintained repo, feel free to fill in the gaps and submit a pull request. For questions, concerns, ideas, or requests, open an issue, join the Blockstack Community Slack (https://community.blockstack.org/slack), or reach out in the forums (https://forum.blockstack.org). Happy hacking!
+
 ## Getting started
 
 `$ npm install react-native-blockstack --save`
@@ -47,9 +50,15 @@ Once this is set up, move on to the next section to integrate the Blockstack SDK
 
 ##### Add module
 1. In XCode, in the project navigator, right click your project and select `Add Files to [your project's name]`
+   - NOTE: Make sure "Create Groups" is selected in the file picker, or the native module will not be properly exported!
 2. Go to `node_modules` ➜ `react-native-blockstack` ➜ `ios` and add the `RNBlockstackSdk` folder
 4. Run your project (`Cmd+R`)
-5. In your React Native project's App.js file, utilize relevant methods as defined in `RNBlockstackSdk.swift`
+5. In your React Native project's App.js file, add the following line:
+
+    ```
+    import RNBlockstackSdk from "react-native-blockstack";
+    ```
+6. Utilize relevant methods as defined in `RNBlockstackSdk.swift` (i.e. `RNBlockstackSdk.isUserSignedIn()`)
     *  This is a community maintained repo. Feel free to add any missing functionality and submit a pull request :). 
 
 #### Android
