@@ -61,3 +61,5 @@ freeline_project_description.json
 *.xcworkspacedata
 example/ios/example-sdk-module.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 example/ios/Pods/
+example/ios/Podfile.lock
+example/package-lock.json
