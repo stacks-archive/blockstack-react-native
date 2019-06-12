@@ -1,4 +1,4 @@
-package com.blockstack.examplesdkmodule;
+package org.blockstack.android.sample;
 
 import android.content.Intent;
 import android.os.Bundle;

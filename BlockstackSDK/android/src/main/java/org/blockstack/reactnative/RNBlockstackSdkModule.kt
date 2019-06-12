@@ -21,7 +21,19 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.net.URI
 
-class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class RNBlockstackSdkModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext), LifecycleEventListener {
+    override fun onHostResume() {
+        hostResumed = 1
+    }
+
+    override fun onHostPause() {
+        hostResumed = 0
+    }
+
+    override fun onHostDestroy() {
+        currentSession = null
+        currentHandler = null
+    }
 
     override fun getName() = "RNBlockstackSdk"
 
@@ -30,10 +42,14 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
         return constants
     }
 
+    private var hostResumed: Int = -1
     private lateinit var session: BlockstackSession
     private lateinit var handler: Handler
     private val handlerThread: HandlerThread = HandlerThread("blockstack-rn")
 
+    init {
+        reactContext.addLifecycleEventListener(this)
+    }
     @ReactMethod
     fun hasSession(promise: Promise) {
         val map = Arguments.createMap()
@@ -48,6 +64,10 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun createSession(configArg: ReadableMap, promise: Promise) {
+        while (hostResumed < 0) {
+            Log.d(name, "waiting for activity to resume")
+            Thread.sleep(100)
+        }
         val activity = reactApplicationContext.currentActivity
         if (activity != null) {
             val scopes = configArg.getArray("scopes")
@@ -109,7 +129,7 @@ class RNBlockstackSdkModule(private val reactContext: ReactApplicationContext) :
             }
         } else {
             Log.d(name, "reject create session")
-            promise.reject(IllegalStateException("must be called from an Activity that implements ConfigProvider"))
+            promise.reject(IllegalStateException("must be called from an Activity"))
         }
     }
 

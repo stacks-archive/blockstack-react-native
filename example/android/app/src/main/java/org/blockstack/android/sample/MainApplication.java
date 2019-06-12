@@ -1,8 +1,9 @@
-package com.blockstack.examplesdkmodule;
+package org.blockstack.android.sample;
 
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+
 import org.blockstack.reactnative.RNBlockstackSdkPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
