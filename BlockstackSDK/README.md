@@ -10,7 +10,7 @@ Welcome to the React Native bridge of the Blockstack SDK. This bridge exists to 
 
 ### Mostly automatic installation (not for iOS, see steps below)
 
-`$ react-native link react-native-blockstack
+`$ react-native link react-native-blockstack`
 
 ### Manual installation
 
