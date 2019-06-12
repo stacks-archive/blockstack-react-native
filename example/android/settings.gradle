@@ -1,4 +1,4 @@
-rootProject.name = 'example-sdk-module'
+rootProject.name = 'example'
 include ':react-native-blockstack'
 project(':react-native-blockstack').projectDir = new File('../../BlockstackSDK/android')
 include ':app'

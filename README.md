@@ -45,7 +45,7 @@ Note: The user interface and relevant logic is defined as part of `example/App.j
 2. Open `example/android/build.gradle` in Android Studio
    You should see the two modules:
     * `app`: the Android code of the example, 
-    * `.._.._BlockstackSDK`: the Android code of the React Native Blockstack component 
+    * `react-native-blockstack`: the Android code of the React Native Blockstack component
 3. Open the `example/App.js` file in Android Studio if you want to change the app.
 4. Open a terminal on your desktop.
 5. Change to the `example` directory.
