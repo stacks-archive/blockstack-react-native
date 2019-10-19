@@ -7,17 +7,17 @@
     "test": "jest"
   },
   "dependencies": {
-    "react": "^16.8.3",
-    "react-native": "^0.59.9",
+    "react": "16.8.6",
+    "react-native": "0.60.2",
     "react-native-blockstack": "file:../BlockstackSDK"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/runtime": "^7.4.4",
-    "babel-jest": "^24.8.0",
-    "jest": "^24.8.0",
+    "@babel/core": "^7.5.0",
+    "@babel/runtime": "^7.5.0",
+    "babel-jest": "^24.1.0",
+    "jest": "^24.1.0",
     "metro-react-native-babel-preset": "^0.54.1",
-    "react-test-renderer": "16.8.3"
+    "react-test-renderer": "16.8.6"
   },
   "jest": {
     "preset": "react-native"
