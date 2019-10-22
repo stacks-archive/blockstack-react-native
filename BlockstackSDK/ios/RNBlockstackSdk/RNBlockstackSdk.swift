@@ -18,6 +18,10 @@ class RNBlockstackSdk: NSObject {
     private var config: [String: Any]?
     private var isLoaded = false
   
+    @objc static func requiresMainQueueSetup() -> Bool {
+        return true
+    }
+
     @objc public func isUserSignedIn(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         resolve(["signedIn": Blockstack.shared.isUserSignedIn()])
     }
