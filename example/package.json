@@ -7,8 +7,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "react": "16.8.6",
-    "react-native": "0.60.2",
+    "react": "16.9.0",
+    "react-native": "0.61.2",
     "react-native-blockstack": "file:../BlockstackSDK"
   },
   "devDependencies": {
