@@ -24,27 +24,44 @@ Once this is set up, move on to the next section to integrate the Blockstack SDK
 ##### Setup Cocoapods
 1. Install cocoapods, `sudo gem install cocoapods`
 2. In the terminal, navigate to your project root and use command `pod init`
-3. In the created `Podfile`, add the following lines:
+3. In the created `Podfile`, add the following lines under your target:
     ```
-    use_frameworks!
+      use_frameworks!
 
-    pod 'Blockstack'
-    pod 'React', :path => '../node_modules/react-native', :subspecs => [
-        'Core',
-        'CxxBridge', # Include this for RN >= 0.47
-        'DevSupport', # Include this to enable In-App Devmenu if RN >= 0.43
-        'RCTText',
-        'RCTNetwork',
-        'RCTWebSocket', # Needed for debugging
-        # Add any other subspecs you want to use in your project
-    ]
-    # Explicitly include Yoga if you are using RN >= 0.42.0
-    pod 'yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
-    # Third party deps podspec link
-    pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
-    pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
-    pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
-    ```
+      pod 'Blockstack'
+
+      # React Native pods
+      pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
+      pod 'FBReactNativeSpec', :path => "../node_modules/react-native/Libraries/FBReactNativeSpec"
+      pod 'RCTRequired', :path => "../node_modules/react-native/Libraries/RCTRequired"
+      pod 'RCTTypeSafety', :path => "../node_modules/react-native/Libraries/TypeSafety"
+      pod 'React', :path => '../node_modules/react-native/'
+      pod 'React-Core', :path => '../node_modules/react-native/'
+      pod 'React-CoreModules', :path => '../node_modules/react-native/React/CoreModules'
+      pod 'React-Core/DevSupport', :path => '../node_modules/react-native/'
+      pod 'React-RCTActionSheet', :path => '../node_modules/react-native/Libraries/ActionSheetIOS'
+      pod 'React-RCTAnimation', :path => '../node_modules/react-native/Libraries/NativeAnimation'
+      pod 'React-RCTBlob', :path => '../node_modules/react-native/Libraries/Blob'
+      pod 'React-RCTImage', :path => '../node_modules/react-native/Libraries/Image'
+      pod 'React-RCTLinking', :path => '../node_modules/react-native/Libraries/LinkingIOS'
+      pod 'React-RCTNetwork', :path => '../node_modules/react-native/Libraries/Network'
+      pod 'React-RCTSettings', :path => '../node_modules/react-native/Libraries/Settings'
+      pod 'React-RCTText', :path => '../node_modules/react-native/Libraries/Text'
+      pod 'React-RCTVibration', :path => '../node_modules/react-native/Libraries/Vibration'
+      pod 'React-Core/RCTWebSocket', :path => '../node_modules/react-native/'
+      pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
+      pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
+      pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'
+      pod 'React-jsinspector', :path => '../node_modules/react-native/ReactCommon/jsinspector'
+      pod 'ReactCommon/jscallinvoker', :path => "../node_modules/react-native/ReactCommon"
+      pod 'ReactCommon/turbomodule/core', :path => "../node_modules/react-native/ReactCommon"
+      pod 'Yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
+
+      pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
+      pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
+      pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
+      ```
+      
 4. From the terminal, enter `pod install`
 5. Open the newly created `[your project's name].xcworkspace` project. Note: Always use this file and not the .xcodeproj file when opening your project.
 
