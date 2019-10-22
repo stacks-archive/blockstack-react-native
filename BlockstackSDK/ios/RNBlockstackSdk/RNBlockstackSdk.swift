@@ -135,19 +135,3 @@ extension Encodable {
         return (try? JSONSerialization.jsonObject(with: data, options: .allowFragments)).flatMap { $0 as? [String: Any] }
     }
 }
-
-// TODO: Make public Blockstack SDK and remove this hack
-extension AuthScope {
-  static func fromString(_ value: String) -> AuthScope? {
-      switch value {
-      case AuthScope.storeWrite.rawValue:
-          return .storeWrite
-      case AuthScope.publishData.rawValue:
-          return .publishData
-      case AuthScope.email.rawValue:
-          return .email
-      default:
-          return nil
-      }
-  }
-}
