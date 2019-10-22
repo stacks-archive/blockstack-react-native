@@ -3,7 +3,7 @@
 
 This repository will host all information about using Blockstack with react native. 
 
-Currently it contains [an example](example-sdk-module) that uses the React Native Blockstack component 
+Currently it contains [an example](example) that uses the React Native Blockstack component 
 directly. This module will be published to npm under the name `react-native-blockstack`. The source code of the component is located in [BlockstackSDK](BlockstackSDK)  
 
 The repository also contains [a playground](example-react-native) for developing the above mentioned component 
