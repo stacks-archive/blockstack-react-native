@@ -1,6 +1,6 @@
 {
   "name": "react-native-blockstack",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Blockstack SDK for use with React Native apps",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,7 @@
   "author": "",
   "license": "MIT",
   "peerDependencies": {
-    "react": "^16.8.6",
-    "react-native": "^0.60.2"
+    "react": "^16.9.0",
+    "react-native": "^0.61.2"
   }
 }
